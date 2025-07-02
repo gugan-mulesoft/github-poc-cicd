@@ -1,18 +1,45 @@
-name: Publish to Exchange & Deploy to CH2.0
+name: Publish and Deploy Pipeline
 
 on:
   push:
-    branches: 
-         - dev
-         - master
-         - uat
-    
-jobs:         
-  build:
+    branches:
+      - dev
+      - uat
+      - main
+
+jobs:
+  # Common Publish to Exchange job
+  Publish_to_Exchange:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout this repo
+      - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Increment Version
+        run: |
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. -v OFS=. '{$NF += 1 ; print}')
+          echo "New version: $NEW_VERSION"
+          mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})  # Get current branch
+          echo "Pushing changes to branch: $BRANCH_NAME"
+
+          git checkout $BRANCH_NAME  # Ensure correct branch
+          git pull origin $BRANCH_NAME  # Sync with remote
+          git commit -am "chore: Increment POM version to $NEW_VERSION"
+          git push origin $BRANCH_NAME  # Push dynamically
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+      - name: Check Default Maven Version
+        run: mvn -version
 
       - name: Cache dependencies
         uses: actions/cache@v4
@@ -26,15 +53,33 @@ jobs:
         with:
           distribution: "zulu"
           java-version: 17
-      
+          
       - name: Publish to Exchange
+        shell: bash
         run: |
-          mvn deploy --settings .maven/settings.xml -DskipMunitTests \
-          -Dclient.id="${{ secrets.DEV_CONNECTED_APP_CLIENT_ID }}" \
-          -Dclient.secret="${{ secrets.DEV_CONNECTED_APP_CLIENT_SECRET }}"
+          echo "Publishing to Exchange"
+          mvn clean deploy --settings .maven/settings.xml -DskipMunitTests  \
+            -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
+            -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}"
 
-      - name: Deploy to CloudHub 2.0
+  Deploying_to_Development:
+    needs: Publish_to_Exchange
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build and Deploy to DEV
+        shell: bash
         run: |
-          mvn deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
-          -Dclient.id="${{ secrets.DEV_CONNECTED_APP_CLIENT_ID }}" \
-          -Dclient.secret="${{ secrets.DEV_CONNECTED_APP_CLIENT_SECRET }}" 
+          mvn clean deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
+            -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
+            -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}" \
+            -DcloudhubEnvironment="dev" \
+            -Dtarget="${{ secrets.TARGET }}" \
+            -Denv="DEV" \
+            -DappName="dev" \
+            -Dmule.key="${{ secrets.MULE_KEY }}" \
+
+  
