@@ -1,0 +1,5 @@
+db:
+ url: "jdbc:postgresql://aws-0-ap-south-1.pooler.supabase.com:5432/postgres"
+ driverClass: "org.postgresql.Driver"
+ username: "postgres.tzddaaidpmoucoypdwry"
+ password: "![/33i4P7zgtX8ksPENRSTjoJ8MGWcruxc]"

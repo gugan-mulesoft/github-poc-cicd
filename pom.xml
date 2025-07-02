@@ -3,11 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>b4e621f5-c474-430e-ad3a-586a08077621</groupId>
-	<artifactId>github-cicd-demo</artifactId>
+	<artifactId>github-poc-cicd</artifactId>
 	<version>1.0.0</version>
 	<packaging>mule-application</packaging>
 
-	<name>github-cicd-demo</name>
+	<name>github-poc-cicd</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -34,7 +34,7 @@
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
 				<configuration>
-				<cloudhub2Deployment>
+					<cloudhub2Deployment>
 						<uri>${uri}</uri>
 						<provider>${provider}</provider>
 						<environment>${cloudhubEnvironment}</environment>
@@ -47,12 +47,18 @@
 						<vCores>0.2</vCores>
 						<javaVersion>17</javaVersion>
 						<deploymentSettings>
-						<generateDefaultPublicUrl>true</generateDefaultPublicUrl>
+							<generateDefaultPublicUrl>true</generateDefaultPublicUrl>
 						</deploymentSettings>
 						<properties>
-						   <env>${env}</env>
+							<env>${env}</env>
 						</properties>
-				</cloudhub2Deployment>
+					</cloudhub2Deployment>
+					<sharedLibraries>
+						<sharedLibrary>
+							<groupId>com.mycompany</groupId>
+							<artifactId>postgresql-42.7.7</artifactId>
+						</sharedLibrary>
+					</sharedLibraries>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -84,6 +90,23 @@
 			<version>1.11.2</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
+		<dependency>
+			<groupId>org.mule.connectors</groupId>
+			<artifactId>mule-db-connector</artifactId>
+			<version>1.14.13</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>com.mycompany</groupId>
+			<artifactId>postgresql-42.7.7</artifactId>
+			<version>0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.mulesoft.modules</groupId>
+			<artifactId>mule-secure-configuration-property-module</artifactId>
+			<version>1.2.7</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
 	</dependencies>
 
 	<repositories>
@@ -100,7 +123,7 @@
 			<layout>default</layout>
 		</repository>
 		<repository>
-		    <id>Repository</id>
+			<id>Repository</id>
 			<name>Private Exchange Repository</name>
 			<url>https://maven.anypoint.mulesoft.com/api/v3/organizations/${project.groupId}/maven</url>
 			<layout>default</layout>
@@ -119,12 +142,12 @@
 		</pluginRepository>
 	</pluginRepositories>
 	<distributionManagement>
-        <repository>
-            <id>Repository</id>
-            <name>Corporate Repository</name>
-            <url>https://maven.anypoint.mulesoft.com/api/v3/organizations/${project.groupId}/maven</url>
-            <layout>default</layout>
-        </repository>
-    </distributionManagement>
+		<repository>
+			<id>Repository</id>
+			<name>Corporate Repository</name>
+			<url>https://maven.anypoint.mulesoft.com/api/v3/organizations/${project.groupId}/maven</url>
+			<layout>default</layout>
+		</repository>
+	</distributionManagement>
 
 </project>

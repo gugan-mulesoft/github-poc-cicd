@@ -1,17 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
     <http:listener-config name="github-demo-ci-cd-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
     <apikit:config name="github-demo-ci-cd-config" api="resource::b4e621f5-c474-430e-ad3a-586a08077621:github-demo-ci-cd:1.0.0:raml:zip:github-demo-ci-cd.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
-    <flow name="github-demo-ci-cd-main">
+    <configuration-properties doc:name="Configuration properties" doc:id="b2d6122c-a35c-4250-9b1a-b3855d33a32c" file="config/${env}.yaml" />
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="49ca1b68-23f9-4da8-8222-656993a15dac" >
+		<db:generic-connection url="${db.url}" driverClassName="${db.driverClass}" user="${db.username}" password="${secure::db.password}" />
+	</db:config>
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="00985c62-3ac9-4b82-ba3f-fb18efe658fa" key="${secureKey}" file="config/${env}.yaml">
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<flow name="github-demo-ci-cd-main">
         <http:listener config-ref="github-demo-ci-cd-httpListenerConfig" path="/api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+                <http:body ><![CDATA[#[output json
+---
+payload]]]></http:body>
+				<http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:response>
             <http:error-response statusCode="#[vars.httpStatus default 500]">
-                <http:body>#[payload]</http:body>
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+                <http:body><![CDATA[#[output json
+---
+payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:error-response>
         </http:listener>
         <apikit:router config-ref="github-demo-ci-cd-config" />
@@ -124,25 +138,11 @@ output application/json
         </error-handler>
     </flow>
     <flow name="get:\books:github-demo-ci-cd-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-[
-  {
-    id: 1,
-    title: "1984",
-    author: "George Orwell"
-  }, 
-  {
-    id: 2,
-    title: "Brave New World",
-    author: "Aldous Huxley"
-  }
-] as Array {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="93e403ee-4657-47da-87c4-37ba385098fe" message="Before db call"/>
+		<db:select doc:name="Select" doc:id="392fda09-4a20-4722-915e-b996874e1e87" config-ref="Database_Config">
+			<db:sql ><![CDATA[Select * from customer_feedback.support_tickets;]]></db:sql>
+		</db:select>
+		<logger level="INFO" doc:name="Logger" doc:id="25df8985-bb6c-421b-948b-6706af784c1c" message="#[payload]"/>
     </flow>
     <flow name="get:\books\(bookId):github-demo-ci-cd-config">
         <ee:transform doc:name="Transform Message">
