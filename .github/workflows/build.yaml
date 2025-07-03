@@ -78,7 +78,7 @@ jobs:
             -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}" \
             -DcloudhubEnvironment="dev" \
             -Dtarget="${{ secrets.TARGET }}" \
-            -Denv="DEV" \
+            -Denv="dev" \
             -DappName="dev" \
             -Dmule.key="${{ secrets.MULE_KEY }}" \
 
