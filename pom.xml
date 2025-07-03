@@ -43,7 +43,7 @@
 						<environment>${cloudhubEnvironment}</environment>
 						<target>${target}</target>
 						<server>${server}</server>
-						<applicationName>${project.artifactId}-{env}</applicationName>
+						<applicationName>${project.artifactId}</applicationName>
 						<releaseChannel>${releaseChannel}</releaseChannel>
 						<replicas>1</replicas>
 						<vCores>0.1</vCores>
