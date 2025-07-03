@@ -13,15 +13,14 @@
   <name>github-poc-cicd</name>
 
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <mule.version>4.8.1</mule.version>
-    <mule.maven.plugin.version>4.3.0</mule.maven.plugin.version>
-    <server>Repository</server>
-    <releaseChannel>LTS</releaseChannel>
-    <uri>https://anypoint.mulesoft.com</uri>
-    <provider>MC</provider>
-    <app.runtime>4.9.6</app.runtime>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<server>Repository</server>
+		<releaseChannel>LTS</releaseChannel>
+		<provider>MC</provider>
+		<uri>https://anypoint.mulesoft.com</uri>
+		<app.runtime>4.8.1</app.runtime>
+		<mule.maven.plugin.version>4.3.0</mule.maven.plugin.version>
   </properties>
 
   <build>
@@ -38,25 +37,24 @@
         <version>${mule.maven.plugin.version}</version>
         <extensions>true</extensions>
         <configuration>
-          <cloudhub2Deployment>
-            <uri>${uri}</uri>
-            <provider>${provider}</provider>
-            <environment>${cloudhubEnvironment}</environment>
-            <target>${target}</target>
-            <server>${server}</server>
-            <muleVersion>${mule.version}</muleVersion>
-            <applicationName>${project.artifactId}</applicationName>
-            <releaseChannel>${releaseChannel}</releaseChannel>
-            <replicas>1</replicas>
-            <vCores>0.2</vCores>
-            <javaVersion>17</javaVersion>
-            <deploymentSettings>
-              <generateDefaultPublicUrl>true</generateDefaultPublicUrl>
-            </deploymentSettings>
-            <properties>
-              <env>${env}</env>
-            </properties>
-          </cloudhub2Deployment>
+          			<cloudhub2Deployment>
+						<uri>${uri}</uri>
+						<provider>${provider}</provider>
+						<environment>${cloudhubEnvironment}</environment>
+						<target>${target}</target>
+						<server>${server}</server>
+						<applicationName>${project.artifactId}</applicationName>
+						<releaseChannel>${releaseChannel}</releaseChannel>
+						<replicas>1</replicas>
+						<vCores>0.1</vCores>
+						<javaVersion>17</javaVersion>
+						<deploymentSettings>
+							<generateDefaultPublicUrl>true</generateDefaultPublicUrl>
+						</deploymentSettings>
+						<properties>
+							<env>${env}</env>
+						</properties>
+					</cloudhub2Deployment>
           <sharedLibraries />
         </configuration>
       </plugin>
