@@ -16,12 +16,12 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <mule.version>4.8.1</mule.version>
-    <mule.maven.plugin.version>4.3.1</mule.maven.plugin.version>
+    <mule.maven.plugin.version>4.3.0</mule.maven.plugin.version>
     <server>Repository</server>
     <releaseChannel>LTS</releaseChannel>
     <uri>https://anypoint.mulesoft.com</uri>
     <provider>MC</provider>
-    <app.runtime>4.8.0</app.runtime>
+    <app.runtime>4.9.6</app.runtime>
   </properties>
 
   <build>
