@@ -2,19 +2,22 @@ name: Publish to Exchange & Deploy to CH2.0
 
 on:
   push:
-    branches:
+    branches: 
       - dev
       - uat
       - main
 
-jobs:
-  build-and-publish:
+
+
+jobs:         
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -61,28 +64,7 @@ jobs:
             -DcloudhubEnvironment="dev" \
             -Dtarget="Cloudhub-US-East-2" \
             -Denv="dev"
-
-  deploy-to-cloudhub:
-    runs-on: ubuntu-latest
-    needs: build-and-publish
-    steps:
-      - name: Checkout this repo
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: "zulu"
-          java-version: 17
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
+     
 
       - name: Deploy to CloudHub 2.0
         shell: bash
@@ -92,39 +74,4 @@ jobs:
             -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}" \
             -DcloudhubEnvironment="dev" \
             -Dtarget="Cloudhub-US-East-2" \
-            -Denv="dev" \
-            -Dapplication.name=github-poc-cicd-dev
-
-  deploy-to-uat:
-    runs-on: ubuntu-latest
-    needs: deploy-to-cloudhub
-    steps:
-      - name: Checkout this repo
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: "zulu"
-          java-version: 17
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
-
-      - name: Deploy to CloudHub 2.0 - UAT
-        shell: bash
-        run: |
-          mvn deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
-            -Dclient.id="${{ secrets.UAT_CLIENT_ID }}" \
-            -Dclient.secret="${{ secrets.UAT_CLIENT_SECRET }}" \
-            -DcloudhubEnvironment="uat" \
-            -Dtarget="Cloudhub-US-East-2" \
-            -Denv="uat" \
-            -Dapplication.name=github-poc-cicd-uat
-
+            -Denv="dev"
