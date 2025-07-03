@@ -53,12 +53,7 @@
 							<env>${env}</env>
 						</properties>
 					</cloudhub2Deployment>
-					<sharedLibraries>
-						<sharedLibrary>
-							<groupId>com.mycompany</groupId>
-							<artifactId>postgresql-42.7.7</artifactId>
-						</sharedLibrary>
-					</sharedLibraries>
+					<sharedLibraries/>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -78,13 +73,6 @@
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
-			<groupId>b4e621f5-c474-430e-ad3a-586a08077621</groupId>
-			<artifactId>github-demo-ci-cd</artifactId>
-			<version>1.0.0</version>
-			<classifier>raml</classifier>
-			<type>zip</type>
-		</dependency>
-		<dependency>
 			<groupId>org.mule.modules</groupId>
 			<artifactId>mule-apikit-module</artifactId>
 			<version>1.11.2</version>
@@ -97,15 +85,17 @@
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
-			<groupId>com.mycompany</groupId>
-			<artifactId>postgresql-42.7.7</artifactId>
-			<version>0.1</version>
-		</dependency>
-		<dependency>
 			<groupId>com.mulesoft.modules</groupId>
 			<artifactId>mule-secure-configuration-property-module</artifactId>
 			<version>1.2.7</version>
 			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>b4e621f5-c474-430e-ad3a-586a08077621</groupId>
+			<artifactId>github-demo-ci-cd</artifactId>
+			<version>1.0.1</version>
+			<classifier>raml</classifier>
+			<type>zip</type>
 		</dependency>
 	</dependencies>
 
