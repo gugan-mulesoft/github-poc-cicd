@@ -124,4 +124,5 @@ jobs:
             -DcloudhubEnvironment="uat" \
             -Dtarget="Cloudhub-US-East-2" \
             -Denv="uat" \
-            -Dapplication.name="github-poc-cicd-uat"
+            -Dapplication.name="github-poc-cicd-uat" \
+            -DcreateApplicationIfNotExists=true
