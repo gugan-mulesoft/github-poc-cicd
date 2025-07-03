@@ -10,7 +10,7 @@
   <artifactId>github-poc-cicd-fsc</artifactId>
 
 
-  <version>1.0.0</version>
+  <version>1.0.1</version>
 
   <packaging>mule-application</packaging>
 
