@@ -1,4 +1,4 @@
-name: Publish to Exchange & Deploy to CH2.0
+name: Publish to Exchange & Deploy to CloudHub 2.0 (Dev)
 
 on:
   push:
@@ -7,17 +7,16 @@ on:
       - uat
       - main
 
-
-
-jobs:         
-  build:
+jobs:
+  publish-to-exchange:
+    name: Publish to Exchange
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout this repo
+      - name: Checkout Source Code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -33,7 +32,7 @@ jobs:
           echo "New version: $NEW_VERSION"
           mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
 
-      - name: Commit and Push Changes
+      - name: Commit and Push New Version
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -42,21 +41,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - name: Cache dependencies
+      - name: Cache Maven Dependencies
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
 
-      - name: Check Default Maven Version
+      - name: Verify Maven Installation
         run: mvn -version
 
-      - name: Build (mvn clean install)
+      - name: Build Project
         run: mvn clean install -DskipTests
 
-      - name: Publish to Exchange
-        shell: bash
+      - name: Publish to Anypoint Exchange
         run: |
           mvn deploy --settings .maven/settings.xml -DskipMunitTests \
             -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
@@ -64,10 +62,30 @@ jobs:
             -DcloudhubEnvironment="dev" \
             -Dtarget="Cloudhub-US-East-2" \
             -Denv="dev"
-     
 
-      - name: Deploy to CloudHub 2.0
-        shell: bash
+  deploy-to-cloudhub-dev:
+    name: Deploy to CloudHub 2.0 (Dev)
+    runs-on: ubuntu-latest
+    needs: publish-to-exchange
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: 17
+
+      - name: Cache Maven Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      - name: Deploy to CloudHub 2.0 (Dev)
         run: |
           mvn deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
             -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
