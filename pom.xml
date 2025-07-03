@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>b4e621f5-c474-430e-ad3a-586a08077621</groupId>
-  <artifactId>github-poc-cicd</artifactId>
+  <artifactId>github-poc-cicd-fsc</artifactId>
   <version>1.0.0</version>
   <packaging>mule-application</packaging>
 
