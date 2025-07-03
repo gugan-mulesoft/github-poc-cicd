@@ -45,7 +45,7 @@
             <target>${target}</target>
             <server>${server}</server>
             <muleVersion>${mule.version}</muleVersion>
-            <applicationName>${project.artifactId}-${env}</applicationName>
+            <applicationName>${project.artifactId}</applicationName>
             <releaseChannel>${releaseChannel}</releaseChannel>
             <replicas>1</replicas>
             <vCores>0.2</vCores>
