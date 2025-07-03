@@ -124,5 +124,6 @@ jobs:
             -Dclient.secret="${{ secrets.UAT_CLIENT_SECRET }}" \
             -DcloudhubEnvironment="uat" \
             -Dtarget="Cloudhub-US-East-2" \
-            -Denv="uat"
+            -Denv="uat" \
+            -Dapplication.name=github-poc-cicd-uat
 
