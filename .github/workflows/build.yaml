@@ -6,7 +6,7 @@ on:
       - dev
       - uat
       - main
-      - feature/*
+
 
 jobs:
   Publish_to_Exchange:
@@ -88,3 +88,32 @@ jobs:
             -DcloudhubEnvironment="dev" \
             -Dtarget="Cloudhub-US-East-2" \
             -Denv="dev" \
+
+  deploy-to-cloudhub-uat:
+    needs: Publish_to_Exchange
+    runs-on: ubuntu-latest
+    environment: uat
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Pull the latest changes from dev branch
+        run: |
+          git fetch origin
+          git checkout uat
+          git pull origin uat
+
+      - name: Echo version from pom.xml
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Using version $VERSION"    
+          
+      - name: Build and Deploy to UAT
+        shell: bash
+        run: |
+          mvn clean deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
+            -Dclient.id="${{ secrets.UAT_CLIENT_ID }}" \
+            -Dclient.secret="${{ secrets.UAT_CLIENT_SECRET }}" \
+            -DcloudhubEnvironment="uat" \
+            -Dtarget="Cloudhub-US-East-2" \
+            -Denv="uat" \
