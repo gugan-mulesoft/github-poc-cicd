@@ -64,7 +64,7 @@ jobs:
   deploy-to-cloudhub-dev:
     needs: publish-to-exchange
     if: (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'dev') || 
-        (github.event_name == 'push' && (github.ref == 'refs/heads/dev'))
+        (github.event_name == 'push' && (github.ref == 'refs/heads/feature/*'))
  
     runs-on: ubuntu-latest
     environment: dev
