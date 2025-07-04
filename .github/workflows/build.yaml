@@ -87,4 +87,4 @@ jobs:
             -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}" \
             -DcloudhubEnvironment="dev" \
             -Dtarget="Cloudhub-US-East-2" \
-            -Denv="DEV" \
+            -Denv="dev" \
