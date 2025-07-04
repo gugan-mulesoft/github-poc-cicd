@@ -6,7 +6,6 @@ on:
       - dev
       - uat
       - main
-      - feature/*
 
 jobs:
   Publish_to_Exchange:
@@ -28,13 +27,12 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})  # Get current branch
+          BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})
           echo "Pushing changes to branch: $BRANCH_NAME"
- 
-          git checkout $BRANCH_NAME  # Ensure correct branch
-          git pull origin $BRANCH_NAME  # Sync with remote
-          git commit -am "chore: Increment POM version to $NEW_VERSION"
-          git push origin $BRANCH_NAME  # Push dynamically
+          git checkout $BRANCH_NAME
+          git pull origin $BRANCH_NAME
+          git commit -am "chore: Increment POM version to $NEW_VERSION [skip ci]"
+          git push origin $BRANCH_NAME
           
       - name: Check Default Maven Version
         run: mvn -version
