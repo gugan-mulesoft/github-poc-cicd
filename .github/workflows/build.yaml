@@ -85,6 +85,6 @@ jobs:
           mvn clean deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
             -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
             -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}" \
-            -DcloudhubEnvironment="DEV" \
+            -DcloudhubEnvironment="dev" \
             -Dtarget="Cloudhub-US-East-2" \
             -Denv="DEV" \
