@@ -6,7 +6,11 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>b4e621f5-c474-430e-ad3a-586a08077621</groupId>
   <artifactId>github-poc-cicd</artifactId>
+<<<<<<< Updated upstream
   <version>1.0.36</version>
+=======
+  <version>1.0.37</version>
+>>>>>>> Stashed changes
   <packaging>mule-application</packaging>
   <name>github-poc-cicd</name>
   <properties>
