@@ -9,7 +9,7 @@ on:
       - feature/*
 
 jobs:
-  publish-to-exchange:
+  Publish_to_Exchange:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -35,8 +35,7 @@ jobs:
           git pull origin $BRANCH_NAME  # Sync with remote
           git commit -am "chore: Increment POM version to $NEW_VERSION"
           git push origin $BRANCH_NAME  # Push dynamically
-        env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          
       - name: Check Default Maven Version
         run: mvn -version
  
@@ -52,6 +51,7 @@ jobs:
         with:
           distribution: "zulu"
           java-version: 17
+          
       - name: Publish to Exchange
         shell: bash
         run: |
@@ -62,29 +62,30 @@ jobs:
 
 
   deploy-to-cloudhub-dev:
-    needs: publish-to-exchange
- 
+    needs: Publish_to_Exchange
     runs-on: ubuntu-latest
     environment: dev
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        
       - name: Pull the latest changes from dev branch
         run: |
           git fetch origin
           git checkout dev
           git pull origin dev
- 
+
       - name: Echo version from pom.xml
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "Using version $VERSION"    
+          
       - name: Build and Deploy to DEV
         shell: bash
         run: |
           mvn clean deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
             -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
             -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}" \
-            -DcloudhubEnvironment="dev" \
+            -DcloudhubEnvironment="DEV" \
             -Dtarget="Cloudhub-US-East-2" \
-            -Denv="dev" 
+            -Denv="DEV" \
