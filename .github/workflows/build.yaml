@@ -59,9 +59,7 @@ jobs:
           mvn deploy --settings .maven/settings.xml -DskipMunitTests \
             -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
             -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}" \
-            -DcloudhubEnvironment="dev" \
-            -Dtarget="Cloudhub-US-East-2" \
-            -Denv="dev"
+
 
   deploy-to-cloudhub-dev:
     needs: publish-to-exchange
