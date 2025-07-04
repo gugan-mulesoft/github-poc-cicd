@@ -10,7 +10,7 @@
   <artifactId>github-poc-cicd</artifactId>
 
 
-  <version>1.0.24</version>
+  <version>1.0.25</version>
 
   <packaging>mule-application</packaging>
 
