@@ -4,27 +4,20 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-
   <groupId>b4e621f5-c474-430e-ad3a-586a08077621</groupId>
-
   <artifactId>github-poc-cicd</artifactId>
-
-
   <version>1.0.31</version>
-
   <packaging>mule-application</packaging>
-
   <name>github-poc-cicd</name>
-
   <properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<server>Repository</server>
-		<releaseChannel>LTS</releaseChannel>
-		<provider>MC</provider>
-		<uri>https://anypoint.mulesoft.com</uri>
-		<app.runtime>4.8.1</app.runtime>
-		<mule.maven.plugin.version>4.3.0</mule.maven.plugin.version>
+	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	<server>Repository</server>
+	<releaseChannel>LTS</releaseChannel>
+	<provider>MC</provider>
+	<uri>https://anypoint.mulesoft.com</uri>
+	<app.runtime>4.8.1</app.runtime>
+	<mule.maven.plugin.version>4.3.0</mule.maven.plugin.version>
   </properties>
 
   <build>
@@ -41,29 +34,29 @@
         <version>${mule.maven.plugin.version}</version>
         <extensions>true</extensions>
         <configuration>
-          			<cloudhub2Deployment>
-						<uri>${uri}</uri>
-						<provider>${provider}</provider>
-						<environment>${cloudhubEnvironment}</environment>
-						<target>${target}</target>
-						<server>${server}</server>
-						<applicationName>${project.artifactId}</applicationName>
-						<releaseChannel>${releaseChannel}</releaseChannel>
-						<replicas>1</replicas>
-						<vCores>0.1</vCores>
-						<javaVersion>17</javaVersion>
-						<deploymentSettings>
-							<generateDefaultPublicUrl>true</generateDefaultPublicUrl>
-						</deploymentSettings>
-						<properties>
-							<env>${env}</env>
-						</properties>
-					</cloudhub2Deployment>
-          <sharedLibraries />
+	<cloudhub2Deployment>
+		<uri>${uri}</uri>
+		<provider>${provider}</provider>
+		<environment>${cloudhubEnvironment}</environment>
+		<target>${target}</target>
+		<server>${server}</server>
+		<applicationName>${project.artifactId}</applicationName>
+		<releaseChannel>${releaseChannel}</releaseChannel>
+		<replicas>1</replicas>
+		<vCores>0.1</vCores>
+		<javaVersion>17</javaVersion>
+		<deploymentSettings>
+		<generateDefaultPublicUrl>true</generateDefaultPublicUrl>
+		</deploymentSettings>
+		<properties>
+		   <env>${env}</env>
+		</properties>
+	</cloudhub2Deployment>
+        <sharedLibraries />
         </configuration>
-      </plugin>
-    </plugins>
-  </build>
+       </plugin>
+      </plugins>
+    </build>
 
   <dependencies>
     <dependency>
