@@ -62,6 +62,8 @@ jobs:
 
   deploy-to-cloudhub-dev:
     needs: Publish_to_Exchange
+    if: (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'dev') || 
+        (github.event_name == 'push' && (github.ref == 'refs/heads/dev'))
     runs-on: ubuntu-latest
     environment: dev
     steps:
@@ -91,6 +93,8 @@ jobs:
 
   deploy-to-cloudhub-uat:
     needs: Publish_to_Exchange
+    if: (github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'uat') ||
+        (github.event_name == 'push' && (github.ref == 'refs/heads/uat'))
     runs-on: ubuntu-latest
     environment: uat
     steps:
