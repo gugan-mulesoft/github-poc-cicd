@@ -7,6 +7,7 @@
   <groupId>b4e621f5-c474-430e-ad3a-586a08077621</groupId>
   <artifactId>github-poc-cicd</artifactId>
   <version>1.0.45</version>
+
   <packaging>mule-application</packaging>
   <name>github-poc-cicd</name>
   <properties>
@@ -92,26 +93,26 @@
     </dependency>
   </dependencies>
 
-  <repositories>
-    <repository>
-      <id>anypoint-exchange-v3</id>
-      <name>Anypoint Exchange</name>
-      <url>https://maven.anypoint.mulesoft.com/api/v3/maven</url>
-      <layout>default</layout>
-    </repository>
-    <repository>
-      <id>mulesoft-releases</id>
-      <name>MuleSoft Releases Repository</name>
-      <url>https://repository.mulesoft.org/releases/</url>
-      <layout>default</layout>
-    </repository>
-    <repository>
-      <id>Repository</id>
-      <name>Private Exchange Repository</name>
-      <url>https://maven.anypoint.mulesoft.com/api/v3/organizations/${project.groupId}/maven</url>
-      <layout>default</layout>
-    </repository>
-  </repositories>
+	<repositories>
+		<repository>
+			<id>Repository</id>
+			<name>Private Exchange repository</name>
+			<url>https://maven.anypoint.mulesoft.com/api/v3/organizations/${project.groupId}/maven</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>anypoint-exchange-v3</id>
+			<name>Anypoint Exchange</name>
+			<url>https://maven.anypoint.mulesoft.com/api/v3/maven</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>mulesoft-releases</id>
+			<name>MuleSoft Releases Repository</name>
+			<url>https://repository.mulesoft.org/releases/</url>
+			<layout>default</layout>
+		</repository>
+	</repositories>
 
   <pluginRepositories>
     <pluginRepository>
@@ -123,15 +124,15 @@
         <enabled>false</enabled>
       </snapshots>
     </pluginRepository>
+    
   </pluginRepositories>
-
   <distributionManagement>
-    <repository>
-      <id>Repository</id>
-      <name>Anypoint Exchange</name>
-      <url>https://maven.anypoint.mulesoft.com/api/v3/organizations/${project.groupId}/maven</url>
-      <layout>default</layout>
-    </repository>
+		<repository>
+			<id>Repository</id>
+			<name>Corporate Repository</name>
+			<url>https://maven.anypoint.mulesoft.com/api/v3/organizations/${project.groupId}/maven</url>
+			<layout>default</layout>
+		</repository>
   </distributionManagement>
 
 </project>
