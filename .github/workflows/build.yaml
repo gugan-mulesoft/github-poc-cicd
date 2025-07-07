@@ -23,6 +23,7 @@ jobs:
           java-version: 17
 
       - name: Increment Version
+        if: github.ref_name == 'dev'
         run: |
           CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. -v OFS=. '{$NF += 1 ; print}')
@@ -31,6 +32,7 @@ jobs:
           mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
 
       - name: Commit and Push Changes
+        if: github.ref_name == 'dev'
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
