@@ -32,8 +32,6 @@ jobs:
 
       - name: Build (mvn clean install)
         run:  mvn clean deploy --settings .maven/settings.xml -DskipMunitTests 
-                   -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
-                   -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}"
 
   publish_to_exchange:
     runs-on: ubuntu-latest
