@@ -31,7 +31,7 @@ jobs:
           restore-keys: ${{ runner.os }}-maven-
 
       - name: Build (mvn clean install)
-        run:  mvn clean deploy --settings .maven/settings.xml -DskipMunitTests 
+        run: mvn clean install -DskipTests
 
   publish_to_exchange:
     runs-on: ubuntu-latest
