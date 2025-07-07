@@ -51,8 +51,8 @@ jobs:
       - name: Publish to Exchange
         run: |
           mvn deploy --settings .maven/settings.xml -DskipMunitTests \
-            -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
-            -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}" \
+            -Dclient.id="${{ secrets.UAT_CLIENT_ID }}" \
+            -Dclient.secret="${{ secrets.UAT_CLIENT_SECRET }}" \
             -DcloudhubEnvironment="dev" \
             -Dtarget="Cloudhub-US-East-2" \
             -Denv="dev"
