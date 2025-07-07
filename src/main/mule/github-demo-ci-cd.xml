@@ -134,9 +134,9 @@ output application/json
 	"message": p('message.content')
 },
   {
-    id: 2,
+    id: 45,
     title: "1984",
-    author: "George Orwell"
+    author: "Sample test"
   }
 ] as Array {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
             </ee:message>
