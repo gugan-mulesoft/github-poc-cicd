@@ -1,104 +1,111 @@
-name: Publish to Exchange & Deploy to CH2.0
+name: Publish and Deploy Pipeline
 
 on:
   push:
-    branches: 
+    branches:
       - dev
-      - uat
-      - main
       - feature/*
 
-jobs:         
-  build:
+env:
+  JAVA_VERSION: '17'
+  MAVEN_DISTRO: 'zulu'
+
+jobs:
+  Publish_to_Exchange:
     runs-on: ubuntu-latest
+    env:
+      ENV_SUFFIX: ${{ github.ref_name == 'feature/*' && '-dev' || github.ref_name == 'master' && '-prod' || '' }}
+
     steps:
-      - name: Checkout this repo
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: "zulu"
-          java-version: 17
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Increment Version
         run: |
           CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. -v OFS=. '{$NF += 1 ; print}')
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
           echo "New version: $NEW_VERSION"
           mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
-      - name: Commit and Push Changes
+      - name: Commit and Push Version Update
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -am "chore: Increment POM version to ${{ env.NEW_VERSION }} [skip ci]"
-          git push origin ${{ github.ref_name }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          git checkout $BRANCH_NAME
+          git pull origin $BRANCH_NAME
+          git commit -am "chore: bump version to $NEW_VERSION"
+          git push origin $BRANCH_NAME
 
-      - name: Cache dependencies
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.MAVEN_DISTRO }}
+
+      - name: Cache Maven dependencies
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
 
-      - name: Determine Environment
-        id: set-env
-        run: |
-          if [[ "${{ github.ref_name }}" == "dev" || "${{ github.ref_name }}" == feature/* ]]; then
-            echo "ENV_SUFFIX=-dev" >> $GITHUB_ENV
-            echo "CLOUDHUB_ENV=dev" >> $GITHUB_ENV
-            echo "CLIENT_ID=${{ secrets.DEV_CLIENT_ID }}" >> $GITHUB_ENV
-            echo "CLIENT_SECRET=${{ secrets.DEV_CLIENT_SECRET }}" >> $GITHUB_ENV
-          elif [ "${{ github.ref_name }}" == "uat" ]; then
-            echo "ENV_SUFFIX=-uat" >> $GITHUB_ENV
-            echo "CLOUDHUB_ENV=uat" >> $GITHUB_ENV
-            echo "CLIENT_ID=${{ secrets.UAT_CLIENT_ID }}" >> $GITHUB_ENV
-            echo "CLIENT_SECRET=${{ secrets.UAT_CLIENT_SECRET }}" >> $GITHUB_ENV
-          else
-            echo "ENV_SUFFIX=-prod" >> $GITHUB_ENV
-            echo "CLOUDHUB_ENV=prod" >> $GITHUB_ENV
-            echo "CLIENT_ID=${{ secrets.PROD_CLIENT_ID }}" >> $GITHUB_ENV
-            echo "CLIENT_SECRET=${{ secrets.PROD_CLIENT_SECRET }}" >> $GITHUB_ENV
-          fi
-          echo "Using environment suffix: $ENV_SUFFIX"
-
-      - name: Publish to Exchange
+      - name: Publish to Exchange with ENV_SUFFIX
         shell: bash
         run: |
-          # Create temporary pom.xml with environment suffix
-          cp pom.xml pom.xml.temp
-          sed -i "s/<artifactId>github-poc-cicd<\/artifactId>/<artifactId>github-poc-cicd$ENV_SUFFIX<\/artifactId>/" pom.xml.temp
-          
-          # Publish to Exchange with modified pom
-          mvn -f pom.xml.temp deploy --settings .maven/settings.xml -DskipTests -DskipMunitTests \
-            -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
-            -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}" \
-            -DcloudhubEnvironment="$CLOUDHUB_ENV" \
-            -Dtarget="Cloudhub-US-East-2" \
-            -Denv="$CLOUDHUB_ENV"
-
-           mv pom.xml.original pom.xml
-
-      - name: Deploy to CloudHub 2.0
-        shell: bash
-        run: |
-          # Replace artifactId again for deployment
           cp pom.xml pom.xml.original
-          sed -i "s/<artifactId>github-poc-cicd<\/artifactId>/<artifactId>github-poc-cicd$ENV_SUFFIX<\/artifactId>/" pom.xml
+          sed -i "s|<artifactId>github-poc-cicd</artifactId>|<artifactId>github-poc-cicd${ENV_SUFFIX}</artifactId>|" pom.xml
+          
+          mvn clean deploy --settings .maven/settings.xml -DskipMunitTests \
+            -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
+            -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}"
 
-          # Deploy using the modified artifact
-          mvn deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
+          mv pom.xml.original pom.xml
+
+  Deploying_to_Development:
+    needs: Publish_to_Exchange
+    if: github.ref_name == 'dev'
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      ENV_SUFFIX: -dev
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Pull Latest from dev
+        run: |
+          git fetch origin
+          git checkout dev
+          git pull origin dev
+
+      - name: Show version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Version for deploy: $VERSION"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.MAVEN_DISTRO }}
+
+      - name: Build and Deploy to CloudHub 2.0
+        shell: bash
+        run: |
+          cp pom.xml pom.xml.original
+          sed -i "s|<artifactId>github-poc-cicd</artifactId>|<artifactId>github-poc-cicd${ENV_SUFFIX}</artifactId>|" pom.xml
+
+          mvn clean deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
             -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
             -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}" \
             -DcloudhubEnvironment="dev" \
             -Dtarget="Cloudhub-US-East-2" \
-            -Denv="dev"
+            -Denv="dev" \
+            -DappName="github-poc-cicd${ENV_SUFFIX}"
 
-          # Restore original pom.xml
           mv pom.xml.original pom.xml
