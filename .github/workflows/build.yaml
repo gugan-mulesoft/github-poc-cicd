@@ -50,44 +50,50 @@ jobs:
       - name: Determine Environment
         id: set-env
         run: |
-          if [ "${{ github.ref_name }}" == "feature/test-run" ]; then
+          if [[ "${{ github.ref_name }}" == "dev" || "${{ github.ref_name }}" == feature/* ]]; then
             echo "ENV_SUFFIX=-dev" >> $GITHUB_ENV
+            echo "CLOUDHUB_ENV=dev" >> $GITHUB_ENV
             echo "CLIENT_ID=${{ secrets.DEV_CLIENT_ID }}" >> $GITHUB_ENV
             echo "CLIENT_SECRET=${{ secrets.DEV_CLIENT_SECRET }}" >> $GITHUB_ENV
           elif [ "${{ github.ref_name }}" == "uat" ]; then
             echo "ENV_SUFFIX=-uat" >> $GITHUB_ENV
+            echo "CLOUDHUB_ENV=uat" >> $GITHUB_ENV
             echo "CLIENT_ID=${{ secrets.UAT_CLIENT_ID }}" >> $GITHUB_ENV
             echo "CLIENT_SECRET=${{ secrets.UAT_CLIENT_SECRET }}" >> $GITHUB_ENV
           else
             echo "ENV_SUFFIX=-prod" >> $GITHUB_ENV
+            echo "CLOUDHUB_ENV=prod" >> $GITHUB_ENV
             echo "CLIENT_ID=${{ secrets.PROD_CLIENT_ID }}" >> $GITHUB_ENV
             echo "CLIENT_SECRET=${{ secrets.PROD_CLIENT_SECRET }}" >> $GITHUB_ENV
           fi
           echo "Using environment suffix: $ENV_SUFFIX"
 
+      - name: Build (mvn clean install)
+        run: mvn clean install -DskipTests -DskipMunitTests
+
       - name: Publish to Exchange with Environment Suffix
         shell: bash
         run: |
           # Create temporary pom.xml with environment suffix
-          cp pom.xml pom.xml.original
-          sed -i "s/<artifactId>github-poc-cicd<\/artifactId>/<artifactId>github-poc-cicd$ENV_SUFFIX<\/artifactId>/" pom.xml
+          cp pom.xml pom.xml.temp
+          sed -i "s/<artifactId>github-poc-cicd<\/artifactId>/<artifactId>github-poc-cicd$ENV_SUFFIX<\/artifactId>/" pom.xml.temp
           
-          mvn deploy --settings .maven/settings.xml -DskipMunitTests \
+          # Publish to Exchange with modified pom
+          mvn -f pom.xml.temp deploy --settings .maven/settings.xml -DskipTests -DskipMunitTests \
             -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
             -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}" \
-            -DcloudhubEnvironment="dev" \
+            -DcloudhubEnvironment="$CLOUDHUB_ENV" \
             -Dtarget="Cloudhub-US-East-2" \
-            -Denv="dev"
-          
-          # Restore original pom.xml
-          mv pom.xml.original pom.xml
+            -Denv="$CLOUDHUB_ENV"
 
       - name: Deploy to CloudHub 2.0
         shell: bash
         run: |
-          mvn deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
+          mvn deploy --settings .maven/settings.xml -DskipTests -DskipMunitTests -DmuleDeploy \
             -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
             -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}" \
-            -DcloudhubEnvironment="dev" \
+            -DcloudhubEnvironment="$CLOUDHUB_ENV" \
             -Dtarget="Cloudhub-US-East-2" \
-            -Denv="dev"
+            -Denv="$CLOUDHUB_ENV" \
+            -Dexchange.assetId="github-poc-cicd$ENV_SUFFIX" \
+            -Dexchange.version="$NEW_VERSION"
