@@ -130,11 +130,12 @@ output application/json
                 <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-[ {
+[ 
+	{
 	"message": p('message.content')
 },
   {
-    id: 45,
+    id: 499,
     title: "1984",
     author: "Sample test"
   }
