@@ -9,7 +9,7 @@
     <server>
       <id>Repository</id>
       <username>~~~Client~~~</username>
-      <password>fdfa4b4efbba45f1841f5af5bf6561b3~?~FdfE52D3187d43358bA811bD47B520a4</password>
+      <password>${client.id}~?~${client.secret}</password>
     </server>
   </servers>
 
