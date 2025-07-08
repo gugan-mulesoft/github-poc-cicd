@@ -22,7 +22,7 @@ jobs:
           distribution: "zulu"
           java-version: 17
       
-     - name: Increment Version
+      - name: Increment Version
         run: |
           CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. -v OFS=. '{$NF += 1 ; print}')
