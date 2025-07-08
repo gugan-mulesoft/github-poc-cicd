@@ -83,14 +83,22 @@ jobs:
             -Dtarget="Cloudhub-US-East-2" \
             -Denv="$CLOUDHUB_ENV"
 
+           mv pom.xml.original pom.xml
+
       - name: Deploy to CloudHub 2.0
         shell: bash
         run: |
-          mvn deploy --settings .maven/settings.xml -DskipTests -DskipMunitTests -DmuleDeploy \
+          # Replace artifactId again for deployment
+          cp pom.xml pom.xml.original
+          sed -i "s/<artifactId>github-poc-cicd<\/artifactId>/<artifactId>github-poc-cicd$ENV_SUFFIX<\/artifactId>/" pom.xml
+
+          # Deploy using the modified artifact
+          mvn deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
             -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
             -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}" \
-            -DcloudhubEnvironment="$CLOUDHUB_ENV" \
+            -DcloudhubEnvironment="dev" \
             -Dtarget="Cloudhub-US-East-2" \
-            -Denv="$CLOUDHUB_ENV" \
-            -Dexchange.assetId="github-poc-cicd$ENV_SUFFIX" \
-            -Dexchange.version="$NEW_VERSION"
+            -Denv="dev"
+
+          # Restore original pom.xml
+          mv pom.xml.original pom.xml
