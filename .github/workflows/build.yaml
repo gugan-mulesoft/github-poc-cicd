@@ -1,4 +1,4 @@
-name: Publish to Exchange & Deploy to CH2.0
+name: Build → Publish to Exchange → Deploy to CloudHub 2.0
 
 on:
   push:
@@ -39,14 +39,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-
       - name: Cache dependencies
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
-
 
   publish_to_exchange:
     runs-on: ubuntu-latest
@@ -64,12 +62,8 @@ jobs:
 
       - name: Publish to Exchange
         run: |
-          mvn deploy --settings .maven/settings.xml -DskipMunitTests \
-            -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
-            -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}" \
-            -DcloudhubEnvironment="dev" \
-            -Dtarget="Cloudhub-US-East-2" \
-            -Denv="dev"
+          mvn deploy --settings .maven/settings.xml -DskipMunitTests 
+
 
   deploy_to_cloudhub:
     runs-on: ubuntu-latest
