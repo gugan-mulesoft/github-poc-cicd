@@ -55,7 +55,7 @@ jobs:
       - name: Determine Environment
         id: set-env
         run: |
-          if [ "${{ github.ref_name }}" == "dev" ]; then
+          if [ "${{ github.ref_name }}" == "feature/test-run" ]; then
             echo "ENV_SUFFIX=-dev" >> $GITHUB_ENV
             echo "CLIENT_ID=${{ secrets.DEV_CLIENT_ID }}" >> $GITHUB_ENV
             echo "CLIENT_SECRET=${{ secrets.DEV_CLIENT_SECRET }}" >> $GITHUB_ENV
@@ -78,11 +78,11 @@ jobs:
           sed -i "s/<artifactId>github-poc-cicd<\/artifactId>/<artifactId>github-poc-cicd$ENV_SUFFIX<\/artifactId>/" pom.xml
           
           mvn deploy --settings .maven/settings.xml -DskipMunitTests \
-            -Dclient.id="$CLIENT_ID" \
-            -Dclient.secret="$CLIENT_SECRET" \
-            -DcloudhubEnvironment="${{ github.ref_name }}" \
+            -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
+            -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}" \
+            -DcloudhubEnvironment="dev" \
             -Dtarget="Cloudhub-US-East-2" \
-            -Denv="${{ github.ref_name }}"
+            -Denv="dev"
           
           # Restore original pom.xml
           mv pom.xml.original pom.xml
@@ -91,8 +91,8 @@ jobs:
         shell: bash
         run: |
           mvn deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
-            -Dclient.id="$CLIENT_ID" \
-            -Dclient.secret="$CLIENT_SECRET" \
-            -DcloudhubEnvironment="${{ github.ref_name }}" \
+            -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
+            -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}" \
+            -DcloudhubEnvironment="dev" \
             -Dtarget="Cloudhub-US-East-2" \
-            -Denv="${{ github.ref_name }}"
+            -Denv="dev"
