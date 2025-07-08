@@ -67,7 +67,7 @@ jobs:
 
   Deploying_to_Development:
     needs: Publish_to_Exchange
-    if: github.ref_name == 'dev'
+    if: github.ref_name == 'feature/*'
     runs-on: ubuntu-latest
     environment: dev
     env:
