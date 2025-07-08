@@ -68,10 +68,7 @@ jobs:
           fi
           echo "Using environment suffix: $ENV_SUFFIX"
 
-      - name: Build (mvn clean install)
-        run: mvn clean install -DskipTests -DskipMunitTests
-
-      - name: Publish to Exchange with Environment Suffix
+      - name: Publish to Exchange
         shell: bash
         run: |
           # Create temporary pom.xml with environment suffix
