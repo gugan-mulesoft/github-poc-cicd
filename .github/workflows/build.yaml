@@ -47,12 +47,6 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
 
-      - name: Check Default Maven Version
-        run: mvn -version
-
-      - name: Build (mvn clean install)
-        run: mvn clean install -DskipTests
-
       - name: Determine Environment
         id: set-env
         run: |
