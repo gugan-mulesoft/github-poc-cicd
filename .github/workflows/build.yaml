@@ -9,6 +9,7 @@ on:
 
 jobs:
   Publish_to_Exchange:
+    if: github.actor != 'github-actions[bot]'  # 👈 Prevent infinite loops
     runs-on: ubuntu-latest
     outputs:
       new_version: ${{ steps.set_version.outputs.new_version }}
@@ -26,7 +27,7 @@ jobs:
 
           if [ "$BRANCH_NAME" == "main" ]; then
             ENV_SUFFIX="prod"
-          elif [ "$BRANCH_NAME" == "qa" ]; then
+          elif [ "$BRANCH_NAME" == "uat" ]; then
             ENV_SUFFIX="uat"
           elif [ "$BRANCH_NAME" == "dev" ]; then
             ENV_SUFFIX="dev"
@@ -50,10 +51,10 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          BRANCH_NAME="${{ github.event.pull_request.base.ref }}"
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
           git checkout $BRANCH_NAME
           git pull origin $BRANCH_NAME
-          git commit -am "chore: Increment POM version to ${{ steps.set_version.outputs.new_version }}"
+          git commit -am "chore: Increment POM version to ${{ steps.set_version.outputs.new_version }} [skip ci]"
           git push origin $BRANCH_NAME
 
       - name: Set up JDK 17
@@ -93,7 +94,7 @@ jobs:
             -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}" \
             -DcloudhubEnvironment="dev" \
             -Dtarget="Cloudhub-US-East-2" \
-            -Denv="dev" 
+            -Denv="dev"
 
   Deploy_to_UAT:
     needs: Publish_to_Exchange
@@ -145,4 +146,4 @@ jobs:
             -Dclient.secret="${{ secrets.PROD_CLIENT_SECRET }}" \
             -DcloudhubEnvironment="prd" \
             -Dtarget="Cloudhub-US-East-2" \
-            -Denv="prd" 
+            -Denv="prd"
