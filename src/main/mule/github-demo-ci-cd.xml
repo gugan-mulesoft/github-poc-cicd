@@ -137,7 +137,8 @@ output application/json
   {
     id: 499,
     title: "1984",
-    author: "Sample test"
+    author: "Sample test",
+    "message": "1.0.119-dev"
   }
 ] as Array {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
             </ee:message>
