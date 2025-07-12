@@ -103,6 +103,7 @@ jobs:
     if: github.ref == 'refs/heads/uat'
     needs: Publish_to_Exchange
     runs-on: ubuntu-latest
+    environment: uat
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
