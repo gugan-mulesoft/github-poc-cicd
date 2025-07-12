@@ -122,9 +122,9 @@ jobs:
           mvn clean deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
             -Dclient.id="${{ secrets.UAT_CLIENT_ID }}" \
             -Dclient.secret="${{ secrets.UAT_CLIENT_SECRET }}" \
-            -DcloudhubEnvironment="uat" \
-            -Dtarget="Cloudhub-US-East-2" \
-            -Denv="uat"
+            -DcloudhubEnvironment="${{ vars.CLOUDHUBENVIRONMENT }}" \
+            -Dtarget="${{ vars.TARGET }}" \
+            -Denv="${{ vars.ENV }}"
 
   Deploy_to_PROD:
     if: github.ref == 'refs/heads/main'
