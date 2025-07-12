@@ -64,6 +64,7 @@ jobs:
           java-version: 17
 
       - name: Publish to Exchange
+        environment: dev
         run: |
           echo "Publishing version ${{ steps.set_version.outputs.new_version }}"
           mvn clean deploy --settings .maven/settings.xml -DskipMunitTests \
