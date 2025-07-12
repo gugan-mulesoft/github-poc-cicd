@@ -1,4 +1,4 @@
-name: Build → Publish to Exchange → Deploy to CloudHub 2.0
+name: Publish and Deploy Pipeline
 
 on:
   push:
@@ -8,14 +8,54 @@ on:
       - main
 
 jobs:
-  deploy_to_cloudhub:
+  Publish_to_Exchange:
+    if: github.actor != 'github-actions[bot]'  # Prevent self-triggered runs
     runs-on: ubuntu-latest
-    if: github.ref_name == 'dev'
+    outputs:
+      new_version: ${{ steps.set_version.outputs.new_version }}
     steps:
-      - name: Checkout this repo
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Increment Version
+        id: set_version
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          echo "Branch name: $BRANCH_NAME"
+
+          if [ "$BRANCH_NAME" == "main" ]; then
+            ENV_SUFFIX="prod"
+          elif [ "$BRANCH_NAME" == "uat" ]; then
+            ENV_SUFFIX="uat"
+          elif [ "$BRANCH_NAME" == "dev" ]; then
+            ENV_SUFFIX="dev"
+          else
+            ENV_SUFFIX="local"
+          fi
+
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Current Version: $CURRENT_VERSION"
+
+          BASE_VERSION=$(echo "$CURRENT_VERSION" | cut -d'-' -f1)
+          PATCH_VERSION=$(echo "$BASE_VERSION" | awk -F. -v OFS=. '{$NF += 1 ; print}')
+          NEW_VERSION="${PATCH_VERSION}-${ENV_SUFFIX}"
+
+          echo "New Version: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+          mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
+
+      - name: Commit and Push Updated Version
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          git checkout $BRANCH_NAME
+          git pull origin $BRANCH_NAME
+          git commit -am "chore: Increment POM version to ${{ steps.set_version.outputs.new_version }} [skip ci]"
+          git push origin $BRANCH_NAME
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -23,97 +63,90 @@ jobs:
           distribution: "zulu"
           java-version: 17
 
-      - name: Increment Version
-        run: |
-          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. -v OFS=. '{$NF += 1 ; print}')
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          echo "New version: $NEW_VERSION"
-          mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
-
-      - name: Commit and Push Changes
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -am "chore: Increment POM version to ${{ env.NEW_VERSION }} [skip ci]"
-          git push origin ${{ github.ref_name }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
-
-
       - name: Publish to Exchange
         run: |
-          mvn deploy --settings .maven/settings.xml -DskipMunitTests \
+          echo "Publishing version ${{ steps.set_version.outputs.new_version }}"
+          mvn clean deploy --settings .maven/settings.xml -DskipMunitTests \
             -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
             -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}"
 
-      - name: Deploy to CloudHub 2.0 (Dev)
+  Deploy_to_DEV:
+    if: github.ref == 'refs/heads/dev'
+    needs: Publish_to_Exchange
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Pull latest committed version
+        run: git pull origin dev
+
+      - name: Log deploying version
         run: |
-          mvn mule:deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Deploying version: $VERSION"
+
+      - name: Build and Deploy to DEV
+        run: |
+          mvn clean deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
             -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
             -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}" \
             -DcloudhubEnvironment="dev" \
             -Dtarget="Cloudhub-US-East-2" \
             -Denv="dev"
 
-  deploy_to_uat:
+  Deploy_to_UAT:
+    if: github.ref == 'refs/heads/uat'
+    needs: Publish_to_Exchange
     runs-on: ubuntu-latest
-    if: github.ref_name == 'uat'
     steps:
-      - name: Checkout this repo
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: "zulu"
-          java-version: 17
+      - name: Pull latest committed version
+        run: git pull origin uat
 
-      - name: Increment Version
+      - name: Log deploying version
         run: |
-          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. -v OFS=. '{$NF += 1 ; print}')
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          echo "New version: $NEW_VERSION"
-          mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Deploying version: $VERSION"
 
-      - name: Commit and Push Changes
+      - name: Build and Deploy to UAT
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -am "chore: Increment POM version to ${{ env.NEW_VERSION }} [skip ci]"
-          git push origin ${{ github.ref_name }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
-
-      - name: Publish to Exchange
-        run: |
-          mvn deploy --settings .maven/settings.xml -DskipMunitTests \
-            -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
-            -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}"
-
-
-      - name: Deploy to CloudHub 2.0 (UAT)
-        run: |
-          mvn mule:deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
+          mvn clean deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
             -Dclient.id="${{ secrets.UAT_CLIENT_ID }}" \
             -Dclient.secret="${{ secrets.UAT_CLIENT_SECRET }}" \
             -DcloudhubEnvironment="uat" \
             -Dtarget="Cloudhub-US-East-2" \
             -Denv="uat"
+
+  Deploy_to_PROD:
+    if: github.ref == 'refs/heads/main'
+    needs: Publish_to_Exchange
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Pull latest committed version
+        run: git pull origin main
+
+      - name: Log deploying version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Deploying version: $VERSION"
+
+      - name: Build and Deploy to PROD
+        run: |
+          mvn deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
+            -Dclient.id="${{ secrets.PROD_CLIENT_ID }}" \
+            -Dclient.secret="${{ secrets.PROD_CLIENT_SECRET }}" \
+            -DcloudhubEnvironment="prd" \
+            -Dtarget="Cloudhub-US-East-2" \
+            -Denv="prd"
