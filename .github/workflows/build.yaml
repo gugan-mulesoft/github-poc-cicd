@@ -9,7 +9,7 @@ on:
 
 jobs:
   Publish_to_Exchange:
-    if: github.actor != 'github-actions[bot]'  # 👈 Prevent infinite loops
+    if: github.actor != 'github-actions[bot]'  # Prevent self-triggered runs
     runs-on: ubuntu-latest
     outputs:
       new_version: ${{ steps.set_version.outputs.new_version }}
@@ -71,6 +71,7 @@ jobs:
             -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}"
 
   Deploy_to_DEV:
+    if: github.ref == 'refs/heads/dev'
     needs: Publish_to_Exchange
     runs-on: ubuntu-latest
     steps:
@@ -97,6 +98,7 @@ jobs:
             -Denv="dev"
 
   Deploy_to_UAT:
+    if: github.ref == 'refs/heads/uat'
     needs: Publish_to_Exchange
     runs-on: ubuntu-latest
     steps:
@@ -123,6 +125,7 @@ jobs:
             -Denv="uat"
 
   Deploy_to_PROD:
+    if: github.ref == 'refs/heads/main'
     needs: Publish_to_Exchange
     runs-on: ubuntu-latest
     steps:
