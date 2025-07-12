@@ -11,6 +11,7 @@ jobs:
   Publish_to_Exchange:
     if: github.actor != 'github-actions[bot]'  # Prevent self-triggered runs
     runs-on: ubuntu-latest
+    environment: dev
     outputs:
       new_version: ${{ steps.set_version.outputs.new_version }}
     steps:
@@ -64,7 +65,6 @@ jobs:
           java-version: 17
 
       - name: Publish to Exchange
-        environment: dev
         run: |
           echo "Publishing version ${{ steps.set_version.outputs.new_version }}"
           mvn clean deploy --settings .maven/settings.xml -DskipMunitTests \
