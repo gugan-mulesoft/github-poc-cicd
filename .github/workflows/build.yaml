@@ -74,6 +74,7 @@ jobs:
     if: github.ref == 'refs/heads/dev'
     needs: Publish_to_Exchange
     runs-on: ubuntu-latest
+    environment: dev
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -93,9 +94,9 @@ jobs:
           mvn clean deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
             -Dclient.id="${{ secrets.DEV_CLIENT_ID }}" \
             -Dclient.secret="${{ secrets.DEV_CLIENT_SECRET }}" \
-            -DcloudhubEnvironment="dev" \
-            -Dtarget="Cloudhub-US-East-2" \
-            -Denv="dev"
+            -DcloudhubEnvironment="${{ vars.CLOUDHUBENVIRONMENT }}" \
+            -Dtarget="${{ vars.TARGET }}" \
+            -Denv="${{ vars.ENV }}"
 
   Deploy_to_UAT:
     if: github.ref == 'refs/heads/uat'
