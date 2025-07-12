@@ -9,7 +9,7 @@ on:
 
 jobs:
   Publish_to_Exchange:
-    if: github.actor != 'github-actions[bot]'  # Prevent self-triggered runs
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     environment: dev
     outputs:
@@ -19,6 +19,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Configure Git and Pull Latest Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          git pull origin $BRANCH_NAME
 
       - name: Increment Version
         id: set_version
@@ -50,11 +57,7 @@ jobs:
 
       - name: Commit and Push Updated Version
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           BRANCH_NAME="${GITHUB_REF#refs/heads/}"
-          git checkout $BRANCH_NAME
-          git pull origin $BRANCH_NAME
           git commit -am "chore: Increment POM version to ${{ steps.set_version.outputs.new_version }} [skip ci]"
           git push origin $BRANCH_NAME
 
